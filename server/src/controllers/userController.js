@@ -1,7 +1,7 @@
-import { fetchUserProfile, fetchUserRepos, fetchRepoDetail } from '../services/userService.js';
-import { usernameParamsSchema, repoParamsSchema, reposQuerySchema, validateParams, validateQuery } from '../validators/userValidator.js';
+import { fetchUserProfile, fetchUserRepos, streamUserRepos, fetchRepoDetail } from '../services/userService.js';
+import { usernameParamsSchema, repoParamsSchema, reposQuerySchema, reposStreamQuerySchema, validateParams, validateQuery } from '../validators/userValidator.js';
 
-export async function getProfile(req, res, next) {
+async function getProfile(req, res, next) {
   try {
     const { username } = validateParams(usernameParamsSchema, req.params);
     const profile = await fetchUserProfile(username);
@@ -11,18 +11,28 @@ export async function getProfile(req, res, next) {
   }
 }
 
-export async function getRepos(req, res, next) {
+async function getRepos(req, res, next) {
   try {
     const { username } = validateParams(usernameParamsSchema, req.params);
-    const { page, sort } = validateQuery(reposQuerySchema, req.query);
-    const result = await fetchUserRepos(username, { page, sort });
+    const { page, sort, order } = validateQuery(reposQuerySchema, req.query);
+    const result = await fetchUserRepos(username, { page, sort, order });
     res.json(result);
   } catch (error) {
     next(error);
   }
 }
 
-export async function getRepoDetail(req, res, next) {
+async function getReposStream(req, res, next) {
+  try {
+    const { username } = validateParams(usernameParamsSchema, req.params);
+    const { sort, order } = validateQuery(reposStreamQuerySchema, req.query);
+    await streamUserRepos(username, { sort, order }, res);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getRepoDetail(req, res, next) {
   try {
     const { username, repoName } = validateParams(repoParamsSchema, req.params);
     const detail = await fetchRepoDetail(username, repoName);
@@ -31,3 +41,5 @@ export async function getRepoDetail(req, res, next) {
     next(error);
   }
 }
+
+export { getProfile, getRepos, getReposStream, getRepoDetail };
