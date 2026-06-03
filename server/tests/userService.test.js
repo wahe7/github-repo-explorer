@@ -29,7 +29,7 @@ describe('userService not found handling', () => {
   });
 
   it('throws USER_NOT_FOUND when repos result is invalid', async () => {
-    vi.spyOn(githubService, 'getUserRepos').mockResolvedValue(null);
+    vi.spyOn(githubService, 'fetchAllUserRepos').mockResolvedValue(null);
 
     await expect(fetchUserRepos('octocat', { sort: 'updated' })).rejects.toMatchObject({
       code: 'USER_NOT_FOUND',
@@ -68,7 +68,7 @@ describe('userService not found handling', () => {
     await expect(fetchUserRepos('octocat', { page: 101 })).rejects.toThrow(ValidationError);
   });
 
-  it('does not per-page cache stars sort results', async () => {
+  it('caches sorted repos by sort and order', async () => {
     const allSorted = Array.from({ length: 45 }, (_, i) => ({
       id: i,
       name: `repo-${i}`,
@@ -81,13 +81,15 @@ describe('userService not found handling', () => {
       defaultBranch: 'main',
     }));
 
-    vi.spyOn(githubService, 'getAllUserReposSorted').mockResolvedValue(allSorted);
+    vi.spyOn(githubService, 'fetchAllUserRepos').mockResolvedValue(allSorted);
 
-    await fetchUserRepos('octocat', { page: 1, sort: 'stars' });
-    await fetchUserRepos('octocat', { page: 2, sort: 'stars' });
+    await fetchUserRepos('octocat', { page: 1, sort: 'stars', order: 'desc' });
+    await fetchUserRepos('octocat', { page: 2, sort: 'stars', order: 'desc' });
 
-    expect(cache.get('repos:octocat:page:1:sort:stars')).toBeNull();
-    expect(cache.get('repos:octocat:page:2:sort:stars')).toBeNull();
-    expect(cache.get('repos:octocat:all:sort:stars')).not.toBeNull();
+    expect(cache.get('repos:octocat:all:stars:desc')).not.toBeNull();
+  });
+
+  it('throws ValidationError for invalid order', async () => {
+    await expect(fetchUserRepos('octocat', { order: 'sideways' })).rejects.toThrow(ValidationError);
   });
 });

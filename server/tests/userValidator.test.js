@@ -81,8 +81,18 @@ describe('userValidator', () => {
       expect(usernameParamsSchema.safeParse({ username: 'not valid!' }).success).toBe(false);
     });
 
-    it('defaults page and sort', () => {
-      expect(reposQuerySchema.parse({})).toEqual({ page: 1, sort: 'updated' });
+    it('accepts valid order values', () => {
+      for (const order of ['asc', 'desc']) {
+        expect(reposQuerySchema.safeParse({ order }).success).toBe(true);
+      }
+    });
+
+    it('rejects invalid order values', () => {
+      expect(reposQuerySchema.safeParse({ order: 'invalid' }).success).toBe(false);
+    });
+
+    it('defaults page, sort, and order', () => {
+      expect(reposQuerySchema.parse({})).toEqual({ page: 1, sort: 'updated', order: 'desc' });
     });
   });
 
