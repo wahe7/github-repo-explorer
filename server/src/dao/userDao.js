@@ -1,4 +1,4 @@
-export function toUserProfile(user) {
+function toUserProfile(user) {
   return {
     login: user.login,
     avatarUrl: user.avatar_url,
@@ -10,3 +10,5 @@ export function toUserProfile(user) {
     htmlUrl: user.html_url,
   };
 }
+
+export { toUserProfile };

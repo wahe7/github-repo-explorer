@@ -3,7 +3,7 @@ import cors from 'cors';
 import usersRouter from './routes/users.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-export function createApp() {
+function createApp() {
   const app = express();
 
   app.use(cors());
@@ -23,3 +23,5 @@ export function createApp() {
 
   return app;
 }
+
+export { createApp };

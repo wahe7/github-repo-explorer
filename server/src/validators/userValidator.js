@@ -1,10 +1,10 @@
 import { z } from 'zod';
-import { VALID_SORTS, DEFAULT_SORT, MAX_PAGE } from '../constants/github.js';
+import { VALID_SORTS, DEFAULT_SORT, VALID_ORDERS, DEFAULT_ORDER, MAX_PAGE } from '../constants/github.js';
 import { ValidationError } from '../utils/validationError.js';
 
 const GITHUB_USERNAME = /^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/;
 
-export const usernameParamsSchema = z.object({
+const usernameParamsSchema = z.object({
   username: z
     .string({ message: 'username must be a string' })
     .min(1, 'username is required')
@@ -12,7 +12,7 @@ export const usernameParamsSchema = z.object({
     .regex(GITHUB_USERNAME, 'username format is invalid'),
 });
 
-export const repoParamsSchema = z.object({
+const repoParamsSchema = z.object({
   username: z
     .string({ message: 'username must be a string' })
     .min(1, 'username is required')
@@ -24,7 +24,7 @@ export const repoParamsSchema = z.object({
     .max(100, 'repoName must be at most 100 characters'),
 });
 
-export const reposQuerySchema = z.object({
+const reposQuerySchema = z.object({
   page: z.coerce
     .number()
     .int()
@@ -34,7 +34,12 @@ export const reposQuerySchema = z.object({
   sort: z
     .enum(VALID_SORTS, { message: `sort must be one of: ${VALID_SORTS.join(', ')}` })
     .default(DEFAULT_SORT),
+  order: z
+    .enum(VALID_ORDERS, { message: `order must be one of: ${VALID_ORDERS.join(', ')}` })
+    .default(DEFAULT_ORDER),
 });
+
+const reposStreamQuerySchema = reposQuerySchema.omit({ page: true });
 
 function throwValidationError(schema, data) {
   const result = schema.safeParse(data);
@@ -46,10 +51,19 @@ function throwValidationError(schema, data) {
   return result.data;
 }
 
-export function validateParams(schema, params) {
+function validateParams(schema, params) {
   return throwValidationError(schema, params);
 }
 
-export function validateQuery(schema, query) {
+function validateQuery(schema, query) {
   return throwValidationError(schema, query);
 }
+
+export {
+  usernameParamsSchema,
+  repoParamsSchema,
+  reposQuerySchema,
+  reposStreamQuerySchema,
+  validateParams,
+  validateQuery,
+};
